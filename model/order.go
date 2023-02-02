@@ -11,8 +11,8 @@ type Order struct {
 	Status          string             `json:"status"`
 	StatusChangelog []*StatusChangelog `json:"status_changelog"`
 	Items           []*OrderItems      `json:"items"`
-	CreatedAt       int64              `json:"created_at,omitempty"`
-	UpdatedAt       int64              `json:"updated_at,omitempty"`
+	CreatedAt       string             `json:"created_at,omitempty"`
+	UpdatedAt       string             `json:"updated_at,omitempty"`
 	CreatedBy       string             `json:"created_by,omitempty"`
 	UpdatedBy       string             `json:"updated_by,omitempty"`
 }
@@ -28,8 +28,8 @@ type OrderItems struct {
 	ProductPrice float64 `json:"product_price"`
 	Qty          int32   `json:"qty"`
 	TotalPrice   float64 `json:"total_price"`
-	CreatedAt    int64   `json:"created_at,omitempty"`
-	UpdatedAt    int64   `json:"updated_at,omitempty"`
+	CreatedAt    string  `json:"created_at,omitempty"`
+	UpdatedAt    string  `json:"updated_at,omitempty"`
 	CreatedBy    string  `json:"created_by,omitempty"`
 	UpdatedBy    string  `json:"updated_by,omitempty"`
 }
@@ -38,6 +38,6 @@ type StatusChangelog struct {
 	OrderId   string `json:"order_id"`
 	From      string `json:"from"`
 	To        string `json:"to"`
-	CreatedAt int64  `json:"created_at,omitempty"`
+	CreatedAt string `json:"created_at,omitempty"`
 	CreatedBy string `json:"created_by,omitempty"`
 }
