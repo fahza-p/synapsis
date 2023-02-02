@@ -3,8 +3,10 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/fahza-p/synapsis/lib/utils"
 	_ "github.com/go-sql-driver/mysql"
@@ -87,6 +89,45 @@ func (m *MysqlStore) QueryRow(ctx context.Context, docs interface{}, statment st
 	}
 
 	return utils.DecodeJSON(out, docs)
+}
+
+func (m *MysqlStore) Count(ctx context.Context, statment string, args ...interface{}) (int64, error) {
+	var total int64
+
+	if err := m.store.QueryRowContext(ctx, statment, args...).Scan(&total); err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
+func (m *MysqlStore) Insert(ctx context.Context, table string, val interface{}, args ...interface{}) (int64, error) {
+	var (
+		fields, values []string
+		docs           map[string]interface{}
+	)
+
+	data, err := json.Marshal(val)
+	if err != nil {
+		return 0, err
+	}
+
+	json.Unmarshal(data, &docs)
+
+	for k, v := range docs {
+		fields = append(fields, k)
+		values = append(values, "?")
+		args = append(args, v)
+	}
+
+	statment := fmt.Sprintf("INSERT INTO %s(%s) VALUES (%v)", table, strings.Join(fields, ","), strings.Join(values, ","))
+
+	res, err := m.store.ExecContext(ctx, statment, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.LastInsertId()
 }
 
 func scan(list *sql.Rows) (rows []map[string]interface{}) {
