@@ -52,3 +52,7 @@ func (u *AuthUserData) SetUserSignupData() error {
 
 	return nil
 }
+
+func (u *AuthUserData) IsPasswordValid(pass string) bool {
+	return utils.ValidateHashBcrypt(pass, u.Password)
+}

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -15,6 +16,7 @@ import (
 type AuthRepository interface {
 	IsExists(ctx context.Context, key string, val interface{}) (bool, error)
 	Create(ctx context.Context, req *model.AuthUserData) error
+	FindOne(ctx context.Context, key string, val interface{}) (*model.AuthUserData, error)
 	GenerateJwt(ctx context.Context, sub map[string]interface{}) (string, error)
 }
 
@@ -52,7 +54,7 @@ func (s *AuthStore) Create(ctx context.Context, req *model.AuthUserData) error {
 	logger := log.GetLogger(ctx, "Auth.Repository", "Create")
 	logger.Info("Repository Create Auth")
 
-	id, err := s.db.Insert(ctx, "user", req)
+	id, err := s.db.Insert(ctx, s.table, req)
 	if err != nil {
 		return err
 	}
@@ -60,6 +62,24 @@ func (s *AuthStore) Create(ctx context.Context, req *model.AuthUserData) error {
 	req.Id = id
 
 	return nil
+}
+
+func (s *AuthStore) FindOne(ctx context.Context, key string, val interface{}) (*model.AuthUserData, error) {
+	logger := log.GetLogger(ctx, "Auth.Repository", "FindOne")
+	logger.Info("Repository FindOne Auth")
+
+	var model model.AuthUserData
+
+	statment := fmt.Sprintf("SELECT * FROM user WHERE %s= ?", key)
+	if err := s.db.QueryRow(ctx, &model, statment, val); err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return &model, errors.New("document not found")
+		}
+
+		return &model, err
+	}
+
+	return &model, nil
 }
 
 func (s *AuthStore) GenerateJwt(ctx context.Context, sub map[string]interface{}) (string, error) {

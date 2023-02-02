@@ -9,4 +9,5 @@ func NewAuthRouter(app fiber.Router, handler *auth.Handler) {
 	api := app.Group("/auth")
 
 	api.Post("/signup", handler.Signup)
+	api.Post("/signin", handler.Signin)
 }
