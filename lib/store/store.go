@@ -33,7 +33,7 @@ func (m *MysqlStore) Ping(ctx context.Context) error {
 	return m.store.PingContext(ctx)
 }
 
-func (m *MysqlStore) Exect(ctx context.Context, statment string, args ...interface{}) error {
+func (m *MysqlStore) exec(ctx context.Context, statment string, args ...interface{}) error {
 	res, err := m.store.ExecContext(ctx, statment, args...)
 	if err != nil {
 		return err
@@ -43,6 +43,7 @@ func (m *MysqlStore) Exect(ctx context.Context, statment string, args ...interfa
 	if err != nil {
 		return err
 	}
+
 	if rows != 1 {
 		return errors.New("document not found")
 	}
@@ -101,26 +102,31 @@ func (m *MysqlStore) Count(ctx context.Context, statment string, args ...interfa
 	return total, nil
 }
 
-func (m *MysqlStore) Insert(ctx context.Context, table string, val interface{}, args ...interface{}) (int64, error) {
+func (m *MysqlStore) Insert(ctx context.Context, table string, values interface{}, args ...interface{}) (int64, error) {
 	var (
-		fields, values []string
-		docs           map[string]interface{}
+		cols, sep []string
+		val       []interface{}
+		docs      map[string]interface{}
 	)
 
-	data, err := json.Marshal(val)
+	data, err := json.Marshal(values)
 	if err != nil {
 		return 0, err
 	}
 
-	json.Unmarshal(data, &docs)
-
-	for k, v := range docs {
-		fields = append(fields, k)
-		values = append(values, "?")
-		args = append(args, v)
+	if err := json.Unmarshal(data, &docs); err != nil {
+		return 0, err
 	}
 
-	statment := fmt.Sprintf("INSERT INTO %s(%s) VALUES (%v)", table, strings.Join(fields, ","), strings.Join(values, ","))
+	for k, v := range docs {
+		cols = append(cols, k)
+		sep = append(sep, "?")
+		val = append(val, v)
+	}
+
+	args = append(val, args...)
+
+	statment := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%v)", table, strings.Join(cols, ","), strings.Join(sep, ","))
 
 	res, err := m.store.ExecContext(ctx, statment, args...)
 	if err != nil {
@@ -128,6 +134,38 @@ func (m *MysqlStore) Insert(ctx context.Context, table string, val interface{}, 
 	}
 
 	return res.LastInsertId()
+}
+
+func (m *MysqlStore) Delete(ctx context.Context, statment string, args ...interface{}) error {
+	return m.exec(ctx, statment, args...)
+}
+
+func (m *MysqlStore) Update(ctx context.Context, table string, key string, values interface{}, args ...interface{}) error {
+	var (
+		cols []string
+		val  []interface{}
+		docs map[string]interface{}
+	)
+
+	data, err := json.Marshal(values)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(data, &docs); err != nil {
+		return err
+	}
+
+	for k, v := range docs {
+		cols = append(cols, k+"=?")
+		val = append(val, v)
+	}
+
+	args = append(val, args...)
+
+	statment := fmt.Sprintf("UPDATE %s SET %s WHERE %s=?", table, strings.Join(cols, ","), key)
+
+	return m.exec(ctx, statment, args...)
 }
 
 func scan(list *sql.Rows) (rows []map[string]interface{}) {

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 )
@@ -56,4 +57,41 @@ func GetAllJsonTagName(obj interface{}) (fields []string) {
 	}
 
 	return
+}
+
+func ToSlug(s string, sep string) string {
+	if sep != "_" && sep != "-" {
+		sep = "_"
+	}
+	slug := strings.ToLower(s)
+	slug = strings.ReplaceAll(slug, " ", sep)
+	return slug
+}
+
+func FindFieldByTag(obj interface{}, tag, key string) (string, error) {
+	reflectType := reflect.TypeOf(obj)
+	switch reflectType.Kind() {
+	case reflect.Ptr:
+		reflectType = reflectType.Elem()
+		fallthrough
+	case reflect.Struct:
+		for i := 0; i < reflectType.NumField(); i++ {
+			field := reflectType.Field(i)
+			if ft := field.Tag.Get(tag); ft == key || strings.HasPrefix(ft, key+",") {
+				return field.Name, nil
+			}
+		}
+		return "", errors.New("field not found")
+	case reflect.Map:
+		return key, nil
+	default:
+		return "", errors.New("unsupported type")
+	}
+}
+
+func IsExistFieldByTag(obj interface{}, tag, key string) bool {
+	if _, err := FindFieldByTag(obj, tag, key); err != nil {
+		return false
+	}
+	return true
 }
