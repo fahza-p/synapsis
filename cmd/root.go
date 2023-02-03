@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/fahza-p/synapsis/handler/auth"
+	"github.com/fahza-p/synapsis/handler/category"
 	"github.com/fahza-p/synapsis/lib/log"
 	"github.com/fahza-p/synapsis/lib/store"
 	"github.com/fahza-p/synapsis/repository"
@@ -32,8 +33,24 @@ func Run() {
 		logger.WithError(err).Fatal("Unable to initialize auth repository")
 	}
 
+	userRepo, err := repository.NewUserRepository(store)
+	if err != nil {
+		logger.WithError(err).Fatal("Unable to initialize user repository")
+	}
+
+	categoryRepo, err := repository.NewCategoryRepository(store)
+	if err != nil {
+		logger.WithError(err).Fatal("Unable to initialize category repository")
+	}
+
+	productRepo, err := repository.NewProductRepository(store)
+	if err != nil {
+		logger.WithError(err).Fatal("Unable to initialize product repository")
+	}
+
 	/* Initialize Handler */
 	authHandler := auth.NewHandler(authRepo)
+	categoryHandler := category.NewHandler(categoryRepo, productRepo, userRepo)
 
 	app := fiber.New(fiber.Config{
 		AppName:               "synapsis",
@@ -44,10 +61,7 @@ func Run() {
 
 	api := app.Group("/api")
 	router.NewAuthRouter(api, authHandler)
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
+	router.NewCategoryRouter(api, categoryHandler)
 
 	app.Listen(":3000")
 }

@@ -70,7 +70,7 @@ func (s *AuthStore) FindOne(ctx context.Context, key string, val interface{}) (*
 
 	var model model.AuthUserData
 
-	statment := fmt.Sprintf("SELECT * FROM user WHERE %s= ?", key)
+	statment := fmt.Sprintf("SELECT * FROM %s WHERE %s= ?", s.table, key)
 	if err := s.db.QueryRow(ctx, &model, statment, val); err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return &model, errors.New("document not found")
