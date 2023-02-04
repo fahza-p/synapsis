@@ -40,3 +40,11 @@ func (s *Service) Create(ctx context.Context, reqModel *model.ProductCreateReq, 
 	// Create
 	return s.product.Create(ctx, model)
 }
+
+func (s *Service) Remove(ctx context.Context, id string) error {
+	logger := log.GetLogger(ctx, "Product.Service", "Remove")
+	logger.Info("Remove")
+
+	// Delete Category
+	return s.product.Delete(ctx, "id", id)
+}

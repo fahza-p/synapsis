@@ -13,4 +13,5 @@ func NewProductRouter(app fiber.Router, handler *product.Handler) {
 
 	// Admin API
 	api.Post("/admin", middleware.Protected(), handler.Create)
+	api.Delete("/admin/:id", middleware.Protected(), handler.Remove)
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/fahza-p/synapsis/lib/log"
@@ -12,6 +13,7 @@ import (
 type ProductRepository interface {
 	IsExists(ctx context.Context, key string, val interface{}) (bool, error)
 	Create(ctx context.Context, req *model.Product) error
+	Delete(ctx context.Context, key string, val interface{}) error
 }
 
 type ProductStore struct {
@@ -56,4 +58,36 @@ func (s *ProductStore) Create(ctx context.Context, req *model.Product) error {
 	req.Id = id
 
 	return nil
+}
+
+func (s *ProductStore) Delete(ctx context.Context, key string, val interface{}) error {
+	logger := log.GetLogger(ctx, "Product.Repository", "Delete")
+	logger.Info("Repository Delete Product")
+
+	return s.db.ExecTx(ctx, func(tx store.Transaction) error {
+		// Delet Product
+		statment := fmt.Sprintf("DELETE FROM %s WHERE %s= ?", s.table, key)
+		res, err := tx.ExecContext(ctx, statment, val)
+		if err != nil {
+			return err
+		}
+
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+
+		if rows != 1 {
+			return errors.New("document not found")
+		}
+
+		// Delete Cart Item
+		statment = fmt.Sprintf("DELETE FROM %s WHERE %s= ?", "cart_item", "product_id")
+		_, err = tx.ExecContext(ctx, statment, val)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

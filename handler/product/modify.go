@@ -50,3 +50,27 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 	res.Data = map[string]interface{}{"id": model.Id}
 	return res.BuildResponse(c, http.StatusCreated)
 }
+
+func (h *Handler) Remove(c *fiber.Ctx) error {
+	logger := log.GetLogger(c.Context(), "Product.Handler", "Remove")
+	logger.Info("Remove")
+
+	var (
+		res response.Build
+		id  = c.Params("id")
+	)
+
+	if err := h.service.Remove(c.Context(), id); err != nil {
+		logger.WithError(err).Errorf("unable to delete product with id %s", id)
+		res.Msg = err.Error()
+
+		switch res.Msg {
+		case "document not found":
+			return res.BuildResponse(c, http.StatusNotFound)
+		default:
+			return res.BuildResponse(c, http.StatusInternalServerError)
+		}
+	}
+
+	return res.BuildResponse(c, http.StatusOK)
+}
