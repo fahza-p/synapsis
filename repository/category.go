@@ -89,9 +89,10 @@ func (s *CategoryStore) Delete(ctx context.Context, key string, val interface{})
 	return s.db.Delete(ctx, statment, val)
 }
 
-func (s CategoryStore) UpdatePatch(ctx context.Context, id string, fields map[string]interface{}) error {
+func (s *CategoryStore) UpdatePatch(ctx context.Context, id string, fields map[string]interface{}) error {
 	logger := log.GetLogger(ctx, "Category.Repository", "UpdatePatch")
 	logger.Info("Repository UpdatePatch Category")
 
-	return s.db.Update(ctx, s.table, "id", fields, id)
+	query := "id=?"
+	return s.db.Update(ctx, s.table, query, fields, id)
 }

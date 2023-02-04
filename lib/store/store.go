@@ -148,7 +148,7 @@ func (m *MysqlStore) Delete(ctx context.Context, statment string, args ...interf
 	return m.exec(ctx, statment, args...)
 }
 
-func (m *MysqlStore) Update(ctx context.Context, table string, key string, values interface{}, args ...interface{}) error {
+func (m *MysqlStore) Update(ctx context.Context, table string, query string, values interface{}, args ...interface{}) error {
 	var (
 		cols []string
 		val  []interface{}
@@ -171,8 +171,18 @@ func (m *MysqlStore) Update(ctx context.Context, table string, key string, value
 
 	args = append(val, args...)
 
-	statment := fmt.Sprintf("UPDATE %s SET %s WHERE %s=?", table, strings.Join(cols, ","), key)
+	statment := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, strings.Join(cols, ","), query)
 
+	return m.exec(ctx, statment, args...)
+}
+
+func (m *MysqlStore) Increment(ctx context.Context, table string, field string, query string, args ...interface{}) error {
+	statment := fmt.Sprintf("UPDATE %s SET %s = %s + 1 WHERE %s", table, field, field, query)
+	return m.exec(ctx, statment, args...)
+}
+
+func (m *MysqlStore) Decrement(ctx context.Context, table string, field string, query string, args ...interface{}) error {
+	statment := fmt.Sprintf("UPDATE %s SET %s = %s - 1 WHERE %s", table, field, field, query)
 	return m.exec(ctx, statment, args...)
 }
 
@@ -206,11 +216,7 @@ func scan(list *sql.Rows) (rows []map[string]interface{}) {
 		list.Scan(scans...)
 
 		for i, v := range scans {
-			var value = ""
-			if v != nil {
-				value = fmt.Sprintf("%s", v)
-			}
-			row[cols[i]] = value
+			row[cols[i]] = v
 		}
 
 		rows = append(rows, row)

@@ -61,6 +61,20 @@ func (s *AuthStore) Create(ctx context.Context, req *model.AuthUserData) error {
 
 	req.Id = id
 
+	// Create Cart
+	cartInsertField := map[string]interface{}{
+		"user_id":    id,
+		"created_at": req.CreatedAt,
+		"updated_at": req.UpdatedAt,
+		"created_by": req.CreatedBy,
+		"updated_by": req.UpdatedBy,
+	}
+
+	_, err = s.db.Insert(ctx, "cart", cartInsertField)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

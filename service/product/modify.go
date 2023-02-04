@@ -45,6 +45,6 @@ func (s *Service) Remove(ctx context.Context, id string) error {
 	logger := log.GetLogger(ctx, "Product.Service", "Remove")
 	logger.Info("Remove")
 
-	// Delete Category
+	// Delete Product
 	return s.product.Delete(ctx, "id", id)
 }
