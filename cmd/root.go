@@ -5,6 +5,7 @@ import (
 
 	"github.com/fahza-p/synapsis/handler/auth"
 	"github.com/fahza-p/synapsis/handler/category"
+	"github.com/fahza-p/synapsis/handler/product"
 	"github.com/fahza-p/synapsis/lib/log"
 	"github.com/fahza-p/synapsis/lib/store"
 	"github.com/fahza-p/synapsis/repository"
@@ -51,6 +52,7 @@ func Run() {
 	/* Initialize Handler */
 	authHandler := auth.NewHandler(authRepo)
 	categoryHandler := category.NewHandler(categoryRepo, productRepo, userRepo)
+	productHandler := product.NewHandler(categoryRepo, productRepo)
 
 	app := fiber.New(fiber.Config{
 		AppName:               "synapsis",
@@ -62,6 +64,7 @@ func Run() {
 	api := app.Group("/api")
 	router.NewAuthRouter(api, authHandler)
 	router.NewCategoryRouter(api, categoryHandler)
+	router.NewProductRouter(api, productHandler)
 
 	app.Listen(":3000")
 }

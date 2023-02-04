@@ -6,10 +6,12 @@ import (
 
 	"github.com/fahza-p/synapsis/lib/log"
 	"github.com/fahza-p/synapsis/lib/store"
+	"github.com/fahza-p/synapsis/model"
 )
 
 type ProductRepository interface {
 	IsExists(ctx context.Context, key string, val interface{}) (bool, error)
+	Create(ctx context.Context, req *model.Product) error
 }
 
 type ProductStore struct {
@@ -40,4 +42,18 @@ func (s *ProductStore) IsExists(ctx context.Context, key string, val interface{}
 	}
 
 	return true, nil
+}
+
+func (s *ProductStore) Create(ctx context.Context, req *model.Product) error {
+	logger := log.GetLogger(ctx, "Product.Repository", "Create")
+	logger.Info("Repository Create Product")
+
+	id, err := s.db.Insert(ctx, s.table, req)
+	if err != nil {
+		return err
+	}
+
+	req.Id = id
+
+	return nil
 }
