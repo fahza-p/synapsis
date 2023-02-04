@@ -12,6 +12,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type Transaction interface {
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
+}
+
+type TxFn func(Transaction) error
+
 type MysqlStore struct {
 	store *sql.DB
 }
@@ -166,6 +174,23 @@ func (m *MysqlStore) Update(ctx context.Context, table string, key string, value
 	statment := fmt.Sprintf("UPDATE %s SET %s WHERE %s=?", table, strings.Join(cols, ","), key)
 
 	return m.exec(ctx, statment, args...)
+}
+
+func (m *MysqlStore) ExecTx(ctx context.Context, fn TxFn) error {
+	tx, err := m.store.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = fn(tx)
+	if err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("tx err: %v, rb err: %v", err, rbErr)
+		}
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func scan(list *sql.Rows) (rows []map[string]interface{}) {
