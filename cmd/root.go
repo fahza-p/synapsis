@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/fahza-p/synapsis/handler/auth"
 	"github.com/fahza-p/synapsis/handler/cart"
@@ -19,16 +21,17 @@ func Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	fmt.Println("1")
 	/* Initialize Logger */
 	log.Configure("json", "debug")
 	logger := log.GetLogger(ctx, "cmd", "Run")
-
+	fmt.Println("2")
 	/* Initialize Database */
 	store, err := store.NewStore()
 	if err != nil {
 		logger.WithError(err).Fatal("Unable to connect database")
 	}
-
+	fmt.Println("3")
 	/* Initialize Repository */
 	authRepo, err := repository.NewAuthRepository(store)
 	if err != nil {
@@ -74,5 +77,5 @@ func Run() {
 	router.NewProductRouter(api, productHandler)
 	router.NewCartRouter(api, cartHandler)
 
-	app.Listen(":3000")
+	app.Listen(":" + os.Getenv("PORT"))
 }

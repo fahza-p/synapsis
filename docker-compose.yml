@@ -1,0 +1,37 @@
+version: '3'
+services:
+  db:
+    image: mariadb/server:10.5
+    environment:
+      MARIADB_ROOT_PASSWORD: "${DB_PASS}"
+      MARIADB_DATABASE: "${DB_NAME}"
+      MARIADB_USER: "${DB_USER}"
+      MARIADB_PASSWORD: "${DB_PASS}"
+    volumes:
+      - db:/var/lib/mysql
+    build: ./script/migration
+    ports:
+      - 3306:3306
+    networks:
+      - synapsis
+  app:
+    container_name: synapsis-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+    ports:
+      - "3000:3000"
+    env_file: .env
+    depends_on:
+      - db
+    networks:
+      - synapsis
+volumes:
+  api:
+  db:  
+networks:
+  synapsis:
+    driver: bridge

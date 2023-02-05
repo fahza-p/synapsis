@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"os"
 	"time"
 
@@ -23,6 +22,7 @@ type DbConfig struct {
 	User   string
 	Pass   string
 	DbName string
+	Addr   string
 }
 
 func NewMysqlConnection() (*sql.DB, error) {
@@ -32,6 +32,7 @@ func NewMysqlConnection() (*sql.DB, error) {
 		User:   os.Getenv("DB_USER"),
 		Pass:   os.Getenv("DB_PASS"),
 		DbName: os.Getenv("DB_NAME"),
+		Addr:   os.Getenv("DB_ADDR"),
 	}).MysqlConnect()
 }
 
@@ -39,7 +40,8 @@ func (c *DbConfig) MysqlConnect() (myc *sql.DB, err error) {
 	cfg := mysql.Config{
 		User:                 c.User,
 		Passwd:               c.Pass,
-		Addr:                 fmt.Sprintf("%s:%s", c.Host, c.Port),
+		Net:                  "tcp",
+		Addr:                 c.Addr,
 		DBName:               c.DbName,
 		AllowNativePasswords: true,
 		Timeout:              DefaultConnectTimeout,
