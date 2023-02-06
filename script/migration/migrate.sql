@@ -77,6 +77,56 @@ CREATE TABLE `cart_item` (
   CONSTRAINT `cart_item_FK_1` FOREIGN KEY (`cart_id`) REFERENCES `cart` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `order` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `order_number` varchar(20) NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  `total_product` int(11) NOT NULL DEFAULT 0,
+  `total_items` int(11) NOT NULL DEFAULT 0,
+  `total_price` float NOT NULL DEFAULT 0,
+  `total_paid` float NOT NULL DEFAULT 0,
+  `status` enum('Menunggu Pembayaran','Terbayar','Batal') NOT NULL DEFAULT 'Menunggu Pembayaran',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `created_by` varchar(100) NOT NULL,
+  `updated_by` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_FK` (`user_id`),
+  CONSTRAINT `order_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `order_item` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` int(10) unsigned NOT NULL,
+  `product_id` int(10) unsigned NOT NULL,
+  `product_name` varchar(200) NOT NULL,
+  `product_sku` varchar(20) NOT NULL,
+  `product_price` float NOT NULL DEFAULT 0,
+  `qty` int(11) NOT NULL DEFAULT 0,
+  `total_price` float NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `created_by` varchar(100) NOT NULL,
+  `updated_by` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_item_FK` (`order_id`),
+  KEY `order_item_FK_2` (`product_id`),
+  CONSTRAINT `order_item_FK` FOREIGN KEY (`order_id`) REFERENCES `order` (`id`),
+  CONSTRAINT `order_item_FK_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `status_changelog` (
+  `order_id` int(10) unsigned NOT NULL,
+  `from` varchar(100) NOT NULL,
+  `to` varchar(100) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `created_by` varchar(100) NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`),
+  KEY `status_changelog_FK` (`order_id`),
+  CONSTRAINT `status_changelog_FK` FOREIGN KEY (`order_id`) REFERENCES `order` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 INSERT INTO 
 	role(id,name, slug)
 VALUES

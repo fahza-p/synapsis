@@ -15,6 +15,7 @@ type CartRepository interface {
 	FindOne(ctx context.Context, key string, val interface{}) (*model.CartData, error)
 	FindCart(ctx context.Context, val interface{}) (*model.Cart, error)
 	GetCartItemByCartId(ctx context.Context, val interface{}, queryParams *store.QueryParams) ([]*model.CartItems, int64, error)
+	GetCartItem(ctx context.Context, cartId int64, val []int64) ([]*model.CartItems, error)
 	IsExistsProduct(ctx context.Context, query map[string]interface{}) (bool, error)
 	AddItem(ctx context.Context, req *model.CartItemData) error
 	UpdateItemQty(ctx context.Context, cartId int64, productId int64, qty int32) error
@@ -116,6 +117,40 @@ func (s *CartStore) GetCartItemByCartId(ctx context.Context, val interface{}, qu
 	}
 
 	return models, totalData, nil
+}
+
+func (s *CartStore) GetCartItem(ctx context.Context, cartId int64, val []int64) ([]*model.CartItems, error) {
+	logger := log.GetLogger(ctx, "Cart.Repository", "GetCartItem")
+	logger.Info("Repository GetCartItem Cart")
+
+	var models []*model.CartItems
+	productId := strings.Trim(strings.Replace(fmt.Sprint(val), " ", ",", -1), "[]")
+	statment := fmt.Sprintf(`
+	SELECT 
+		cart_item.id,
+		cart_item.cart_id,
+		cart_item.product_id,
+		product.sku,
+		product.name,
+		product.price,
+		product.stock,
+		cart_item.qty,
+		CAST((cart_item.qty * product.price) AS float) AS total_price,
+		cart_item.created_at,
+		cart_item.updated_at,
+		cart_item.created_by,
+		cart_item.updated_by
+	FROM cart_item
+	INNER JOIN product ON product.id = cart_item.product_id 
+	WHERE 
+		product.stock > 0 AND cart_item.cart_id = %d AND cart_item.product_id IN (%v)
+	`, cartId, productId)
+
+	if err := s.db.Query(ctx, &models, statment, true); err != nil {
+		return nil, err
+	}
+
+	return models, nil
 }
 
 func (s *CartStore) FindOne(ctx context.Context, key string, val interface{}) (*model.CartData, error) {
