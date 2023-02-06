@@ -27,8 +27,6 @@ type DbConfig struct {
 
 func NewMysqlConnection() (*sql.DB, error) {
 	return (&DbConfig{
-		Host:   os.Getenv("DB_HOST"),
-		Port:   os.Getenv("DB_PORT"),
 		User:   os.Getenv("DB_USER"),
 		Pass:   os.Getenv("DB_PASS"),
 		DbName: os.Getenv("DB_NAME"),
