@@ -1,6 +1,6 @@
 # Synapsis Test BE
 
-This repository is a place to ...
+This repository for doing test from PT. Synapsis Sinergi Digital
 
 ## Requirements
 
@@ -14,7 +14,7 @@ to run this application locally
 to run with docker
 
 ```
-- docker server
+- docker
 - docker compose
 ```
 
@@ -28,16 +28,17 @@ Please run the command bellow
 ```
 # EXPORT DB_USER=your_db
 # EXPORT DB_PASS=your_db_password
-# EXPORT DB_NET=tcp
-# EXPORT DB_HOST=your_db_host
-# EXPORT DB_PORT=your_db_port
+# EXPORT DB_ADDR=your_host:your_port
 # EXPORT DB_NAME=your_db_name
 # EXPORT JWT_KEY=generate_your_secret_key
+# EXPORT PORT=3000
 ```
+
+- Create your database and copy value from `script/migration/migrate.sql`. (this step can be skipped when you using docker)
 
 ## How to run 
 
-If you want to run this application locally
+#### If you want to run this application locally
 
 - Load all golang module
 
@@ -55,6 +56,12 @@ go run main.go
 
 ```
 nodemon --exec go run main.go --signal SIGTERM
+```
+
+#### If you using docker
+
+```
+docker-compose up --build
 ```
 
 ## Api Specs Documentation
