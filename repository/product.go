@@ -12,6 +12,7 @@ import (
 
 type ProductRepository interface {
 	IsExists(ctx context.Context, key string, val interface{}) (bool, error)
+	Get(ctx context.Context, queryParams *store.QueryParams) ([]*model.ProductRes, int64, error)
 	Create(ctx context.Context, req *model.Product) error
 	Delete(ctx context.Context, key string, val interface{}) error
 }
@@ -90,4 +91,52 @@ func (s *ProductStore) Delete(ctx context.Context, key string, val interface{}) 
 
 		return nil
 	})
+}
+
+func (s *ProductStore) Get(ctx context.Context, queryParams *store.QueryParams) ([]*model.ProductRes, int64, error) {
+	logger := log.GetLogger(ctx, "Product.Repository", "Get")
+	logger.Info("Repository Get Product")
+
+	var models []*model.ProductRes
+	limit, offset, sort, filter, keywords := queryParams.BuildPagination(model.ProductFilter)
+
+	statment := fmt.Sprintf(`
+	SELECT 
+		product.id,
+		product.category_id,
+		category.name AS category_name,
+		product.sku,
+		product.name,
+		product.image,
+		product.price,
+		product.stock,
+		product.created_at,
+		product.updated_at,
+		product.created_by,
+		product.updated_by
+	FROM product
+	INNER JOIN category ON product.category_id = category.id
+	WHERE %s AND (%s)
+	%s
+	%s %s
+	`, filter, keywords, sort, limit, offset)
+
+	if err := s.db.Query(ctx, &models, statment, true); err != nil {
+		return nil, 0, err
+	}
+
+	countStetment := fmt.Sprintf(`
+	SELECT 
+		COUNT(product.id) AS total
+	FROM product
+	INNER JOIN category ON product.category_id = category.id
+	WHERE %s AND (%s)
+	`, filter, keywords)
+
+	totalData, err := s.db.Count(ctx, countStetment)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return models, totalData, nil
 }

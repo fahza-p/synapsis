@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var ProductFilter = []string{"category.name", "sku", "product.name"}
+
 /* Request */
 type ProductCreateReq struct {
 	CategoryId int64   `json:"category_id" validate:"required,number"`
@@ -15,6 +17,7 @@ type ProductCreateReq struct {
 	Stock      int32   `json:"stock" validate:"required,number,min=0"`
 }
 
+/* Model Data */
 type Product struct {
 	Id         int64   `json:"id"`
 	CategoryId int64   `json:"category_id"`
@@ -27,6 +30,22 @@ type Product struct {
 	UpdatedAt  string  `json:"updated_at,omitempty"`
 	CreatedBy  string  `json:"created_by,omitempty"`
 	UpdatedBy  string  `json:"updated_by,omitempty"`
+}
+
+/* Response */
+type ProductRes struct {
+	Id           int64   `json:"id"`
+	CategoryId   int64   `json:"category_id"`
+	CategoryName string  `json:"category_name"`
+	Sku          string  `json:"sku"`
+	Name         string  `json:"name"`
+	Image        string  `json:"image"`
+	Price        float64 `json:"price"`
+	Stock        int32   `json:"stock"`
+	CreatedAt    string  `json:"created_at,omitempty"`
+	UpdatedAt    string  `json:"updated_at,omitempty"`
+	CreatedBy    string  `json:"created_by,omitempty"`
+	UpdatedBy    string  `json:"updated_by,omitempty"`
 }
 
 /* Functions */

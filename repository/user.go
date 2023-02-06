@@ -30,7 +30,7 @@ func (s *UserStore) Get(ctx context.Context) ([]*model.User, error) {
 
 	var models []*model.User
 	statment := "SELECT * FROM user"
-	if err := s.db.Query(ctx, &models, statment); err != nil {
+	if err := s.db.Query(ctx, &models, statment, false); err != nil {
 		return nil, err
 	}
 

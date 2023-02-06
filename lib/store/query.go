@@ -50,7 +50,7 @@ func (q *QueryParams) BuildPagination(f []string) (limit string, offset string, 
 	}
 
 	if len(q.Filter) >= 3 {
-		filter = fmt.Sprintf("%s %s %v", q.Filter[0], q.Filter[1], q.Filter[2])
+		filter = fmt.Sprintf("%s %s '%v'", q.Filter[0], q.Filter[1], q.Filter[2])
 	}
 
 	if q.Keywords != "" {

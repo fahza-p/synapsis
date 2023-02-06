@@ -59,7 +59,7 @@ func (m *MysqlStore) exec(ctx context.Context, statment string, args ...interfac
 	return nil
 }
 
-func (m *MysqlStore) Query(ctx context.Context, docs interface{}, statment string, args ...interface{}) error {
+func (m *MysqlStore) Query(ctx context.Context, docs interface{}, statment string, convert bool, args ...interface{}) error {
 	rows, err := m.store.QueryContext(ctx, statment, args...)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (m *MysqlStore) Query(ctx context.Context, docs interface{}, statment strin
 
 	defer rows.Close()
 
-	out := scan(rows)
+	out := scan(rows, convert)
 
 	if err := rows.Close(); err != nil {
 		return err
@@ -203,7 +203,7 @@ func (m *MysqlStore) ExecTx(ctx context.Context, fn TxFn) error {
 	return tx.Commit()
 }
 
-func scan(list *sql.Rows) (rows []map[string]interface{}) {
+func scan(list *sql.Rows, convert bool) (rows []map[string]interface{}) {
 	cols, _ := list.Columns()
 	for list.Next() {
 		scans := make([]interface{}, len(cols))
@@ -217,6 +217,13 @@ func scan(list *sql.Rows) (rows []map[string]interface{}) {
 
 		for i, v := range scans {
 			row[cols[i]] = v
+			if convert {
+				var value = ""
+				if v != nil {
+					value = fmt.Sprintf("%s", v)
+				}
+				row[cols[i]] = value
+			}
 		}
 
 		rows = append(rows, row)

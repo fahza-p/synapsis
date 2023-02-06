@@ -69,8 +69,8 @@ func (s *CartStore) FindCart(ctx context.Context, val interface{}) (*model.Cart,
 }
 
 func (s *CartStore) GetCartItemByCartId(ctx context.Context, val interface{}, queryParams *store.QueryParams) ([]*model.CartItems, int64, error) {
-	logger := log.GetLogger(ctx, "Cart.Repository", "FindCart")
-	logger.Info("Repository FindCart Cart")
+	logger := log.GetLogger(ctx, "Cart.Repository", "GetCartItemByCartId")
+	logger.Info("Repository GetCartItemByCartId Cart")
 
 	var models []*model.CartItems
 	limit, offset, sort, filter, keywords := queryParams.BuildPagination(model.CartItemFilter)
@@ -97,7 +97,7 @@ func (s *CartStore) GetCartItemByCartId(ctx context.Context, val interface{}, qu
 	%s
 	%s %s
 	`, filter, keywords, sort, limit, offset)
-	if err := s.db.Query(ctx, &models, statment, val); err != nil {
+	if err := s.db.Query(ctx, &models, statment, false, val); err != nil {
 		return nil, 0, err
 	}
 
