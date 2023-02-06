@@ -21,6 +21,6 @@ func (s *Service) GetList(ctx context.Context, queryParams *store.QueryParams) (
 			queryParams.Filter[0] = "product.name"
 		}
 	}
-	// Find Cart
+	// Find Product
 	return s.product.Get(ctx, queryParams)
 }

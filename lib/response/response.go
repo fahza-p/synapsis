@@ -2,7 +2,9 @@ package response
 
 import (
 	"net/http"
+	"reflect"
 
+	"github.com/fahza-p/synapsis/lib/store"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -46,4 +48,19 @@ func (b *Build) setMessage(c int) {
 			b.Err = map[string]string{"msg": b.Msg}
 		}
 	}
+}
+
+func BuildListResponse(q *store.QueryParams, items interface{}, total int64) map[string]interface{} {
+	result := map[string]interface{}{
+		"data":  make([]string, 0),
+		"query": q.BuildQueryResponse(total),
+	}
+
+	if reflect.TypeOf(items).Kind() == reflect.Slice {
+		if reflect.ValueOf(items).Len() > 0 {
+			result["data"] = items
+		}
+	}
+
+	return result
 }

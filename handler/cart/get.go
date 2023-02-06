@@ -2,7 +2,6 @@ package cart
 
 import (
 	"net/http"
-	"reflect"
 
 	"github.com/fahza-p/synapsis/lib/log"
 	"github.com/fahza-p/synapsis/lib/response"
@@ -57,22 +56,6 @@ func (h *Handler) GetCartItemMe(c *fiber.Ctx) error {
 		return res.BuildResponse(c, http.StatusInternalServerError)
 	}
 
-	res.Data = buildListResponse(&queryParams, cartItem, totalData)
+	res.Data = response.BuildListResponse(&queryParams, cartItem, totalData)
 	return res.BuildResponse(c, http.StatusOK)
-}
-
-/* Local Functions */
-func buildListResponse(q *store.QueryParams, items interface{}, total int64) map[string]interface{} {
-	result := map[string]interface{}{
-		"data":  make([]string, 0),
-		"query": q.BuildQueryResponse(total),
-	}
-
-	if reflect.TypeOf(items).Kind() == reflect.Slice {
-		if reflect.ValueOf(items).Len() > 0 {
-			result["data"] = items
-		}
-	}
-
-	return result
 }

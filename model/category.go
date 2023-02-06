@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var CategoryFilter = []string{"name", "slug"}
+
 /* Request */
 type CategoryCreateReq struct {
 	Name  string `json:"name" validate:"required,ascii,max=100"`

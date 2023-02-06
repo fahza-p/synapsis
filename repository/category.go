@@ -12,6 +12,7 @@ import (
 
 type CategoryRepository interface {
 	FindOne(ctx context.Context, key string, val interface{}) (*model.Category, error)
+	Get(ctx context.Context, queryParams *store.QueryParams) ([]*model.Category, int64, error)
 	IsExists(ctx context.Context, key string, val interface{}) (bool, error)
 	Create(ctx context.Context, req *model.Category) error
 	Delete(ctx context.Context, key string, val interface{}) error
@@ -95,4 +96,38 @@ func (s *CategoryStore) UpdatePatch(ctx context.Context, id string, fields map[s
 
 	query := "id=?"
 	return s.db.Update(ctx, s.table, query, fields, id)
+}
+
+func (s *CategoryStore) Get(ctx context.Context, queryParams *store.QueryParams) ([]*model.Category, int64, error) {
+	logger := log.GetLogger(ctx, "Category.Repository", "Get")
+	logger.Info("Repository Get Category")
+
+	var models []*model.Category
+	limit, offset, sort, filter, keywords := queryParams.BuildPagination(model.CategoryFilter)
+
+	statment := fmt.Sprintf(`
+	SELECT *
+	FROM category
+	WHERE %s AND (%s)
+	%s
+	%s %s
+	`, filter, keywords, sort, limit, offset)
+
+	if err := s.db.Query(ctx, &models, statment, true); err != nil {
+		return nil, 0, err
+	}
+
+	countStetment := fmt.Sprintf(`
+	SELECT 
+		COUNT(id) AS total
+	FROM category
+	WHERE %s AND (%s)
+	`, filter, keywords)
+
+	totalData, err := s.db.Count(ctx, countStetment)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return models, totalData, nil
 }

@@ -10,6 +10,7 @@ func NewCategoryRouter(app fiber.Router, handler *category.Handler) {
 	api := app.Group("/category")
 
 	// Cumtomer API
+	api.Get("", middleware.Protected(), handler.GetList)
 	api.Get("/:id", middleware.Protected(), handler.FindById)
 
 	// Admin API
