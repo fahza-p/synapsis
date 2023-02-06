@@ -14,7 +14,7 @@ import (
 type CartRepository interface {
 	FindOne(ctx context.Context, key string, val interface{}) (*model.CartData, error)
 	FindCart(ctx context.Context, val interface{}) (*model.Cart, error)
-	GetCartItemByCartId(ctx context.Context, val interface{}) ([]*model.CartItems, error)
+	GetCartItemByCartId(ctx context.Context, val interface{}, queryParams *store.QueryParams) ([]*model.CartItems, int64, error)
 	IsExistsProduct(ctx context.Context, query map[string]interface{}) (bool, error)
 	AddItem(ctx context.Context, req *model.CartItemData) error
 	UpdateItemQty(ctx context.Context, cartId int64, productId int64, qty int32) error
@@ -68,13 +68,14 @@ func (s *CartStore) FindCart(ctx context.Context, val interface{}) (*model.Cart,
 	return &model, nil
 }
 
-func (s *CartStore) GetCartItemByCartId(ctx context.Context, val interface{}) ([]*model.CartItems, error) {
+func (s *CartStore) GetCartItemByCartId(ctx context.Context, val interface{}, queryParams *store.QueryParams) ([]*model.CartItems, int64, error) {
 	logger := log.GetLogger(ctx, "Cart.Repository", "FindCart")
 	logger.Info("Repository FindCart Cart")
 
 	var models []*model.CartItems
+	limit, offset, sort, filter, keywords := queryParams.BuildPagination(model.CartItemFilter)
 
-	statment := `
+	statment := fmt.Sprintf(`
 	SELECT 
 		cart_item.id,
 		cart_item.cart_id,
@@ -91,13 +92,30 @@ func (s *CartStore) GetCartItemByCartId(ctx context.Context, val interface{}) ([
 		cart_item.updated_by
 	FROM cart_item
 	INNER JOIN product ON product.id = cart_item.product_id 
-	WHERE cart_item.cart_id = ?
-	`
+	WHERE 
+		cart_item.cart_id = ? AND %s AND (%s)
+	%s
+	%s %s
+	`, filter, keywords, sort, limit, offset)
 	if err := s.db.Query(ctx, &models, statment, val); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return models, nil
+	countStetment := fmt.Sprintf(`
+	SELECT 
+		COUNT(cart_item.id) AS total
+	FROM cart_item
+	INNER JOIN product ON product.id = cart_item.product_id 
+	WHERE 
+		cart_item.cart_id = ? AND %s AND (%s)
+	`, filter, keywords)
+
+	totalData, err := s.db.Count(ctx, countStetment, val)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return models, totalData, nil
 }
 
 func (s *CartStore) FindOne(ctx context.Context, key string, val interface{}) (*model.CartData, error) {

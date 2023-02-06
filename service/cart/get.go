@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/fahza-p/synapsis/lib/log"
+	"github.com/fahza-p/synapsis/lib/store"
 	"github.com/fahza-p/synapsis/model"
 )
 
@@ -20,21 +21,16 @@ func (s *Service) GetCartMe(ctx context.Context, authData map[string]interface{}
 	return cartData, nil
 }
 
-func (s *Service) GetCartItemMe(ctx context.Context, authData map[string]interface{}) ([]*model.CartItems, error) {
+func (s *Service) GetCartItemMe(ctx context.Context, authData map[string]interface{}, queryParams *store.QueryParams) ([]*model.CartItems, int64, error) {
 	logger := log.GetLogger(ctx, "Cart.Service", "GetCartMe")
 	logger.Info("GetCartMe")
 
 	// Get Cart
 	cartData, err := s.cart.FindOne(ctx, "user_id", authData["id"])
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	// Find Cart
-	cartItemData, err := s.cart.GetCartItemByCartId(ctx, cartData.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	return cartItemData, nil
+	return s.cart.GetCartItemByCartId(ctx, cartData.Id, queryParams)
 }

@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+var CartItemFilter = []string{"sku", "name"}
+
 /* Request */
 type CartAddItemReq struct {
 	ProductId int64 `json:"product_id" validate:"required,number"`
